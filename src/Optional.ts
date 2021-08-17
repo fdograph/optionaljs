@@ -3,10 +3,11 @@ export type ConsumerFunction<ValueType, ReturnType = void> = (
 ) => ReturnType;
 
 export type NilType = null | undefined;
+export type ValueOrNullType<T, U = T> = T extends NilType ? null : U;
 
 export class NoSuchElementException extends Error {
   constructor(m?: string) {
-    super(m ?? 'No such element');
+    super(m ?? 'Tried to .get() an empty value');
   }
 }
 
@@ -25,20 +26,24 @@ export class Optional<T> {
 
   public static ofNullable<ValueType>(
     value?: ValueType
-  ): Optional<null> | Optional<ValueType> {
-    return isNil(value) ? Optional.empty() : Optional.of(value);
+  ): Optional<ValueOrNullType<ValueType>> {
+    if (isNil(value)) {
+      return Optional.empty() as Optional<ValueOrNullType<ValueType>>;
+    }
+
+    return Optional.of(value) as Optional<ValueOrNullType<ValueType>>;
   }
 
   protected constructor(private readonly value: T) {}
 
   protected applyIfPresent<ReturnType = T>(
     effect: ConsumerFunction<T, Optional<ReturnType>>
-  ): Optional<ReturnType> | Optional<null> {
+  ): Optional<ValueOrNullType<T, ReturnType>> {
     if (isNil(this.value)) {
-      return Optional.empty();
+      return Optional.empty() as Optional<ValueOrNullType<T, ReturnType>>;
     }
 
-    return effect(this.value);
+    return effect(this.value) as Optional<ValueOrNullType<T, ReturnType>>;
   }
 
   public isPresent(): boolean {
@@ -89,7 +94,9 @@ export class Optional<T> {
     return this.value;
   }
 
-  public filter(filterFn: ConsumerFunction<T, boolean>): Optional<T | null> {
+  public filter(
+    filterFn: ConsumerFunction<T, boolean>
+  ): Optional<ValueOrNullType<T, T | null>> {
     return this.applyIfPresent((val: T) =>
       filterFn(val) ? Optional.of(val) : Optional.empty()
     );
@@ -97,13 +104,13 @@ export class Optional<T> {
 
   public map<NewType>(
     mapper: ConsumerFunction<T, NewType>
-  ): Optional<NewType | null> {
+  ): Optional<ValueOrNullType<T, NewType>> {
     return this.applyIfPresent((val: T) => Optional.of(mapper(val)));
   }
 
   public flatMap<NewType>(
     mapper: ConsumerFunction<T, Optional<NewType>>
-  ): Optional<NewType | null> {
+  ): Optional<ValueOrNullType<T, NewType>> {
     return this.applyIfPresent((val: T) => mapper(val));
   }
 }

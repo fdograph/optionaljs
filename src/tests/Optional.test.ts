@@ -45,19 +45,8 @@ describe('Optional class', () => {
         }).not.toThrow();
         expect(opt.get()).toEqual(12345678);
       });
-      it('Should create an Empty optional wen supplied by empty value', () => {
-        const opt = Optional.ofNullable(undefined);
-
-        expect(opt.isEmpty()).toBe(true);
-        expect(opt.isPresent()).toBe(false);
-        expect(opt.orElse(10)).toBe(10);
-        expect(opt.orElseGet(() => 1234)).toBe(1234);
-        expect(() => {
-          opt.orElseThrow(new Error('Trying to get empty'));
-        }).toThrow();
-        expect(() => {
-          opt.get();
-        }).toThrow();
+      it('Should create an Empty optional when supplied with empty value', () => {
+        expect(Optional.ofNullable(undefined).isEmpty()).toBe(true);
       });
     });
   });
@@ -177,6 +166,13 @@ describe('Optional class', () => {
             .map((value) => value.split(',').map(Number))
             .get()
         ).toEqual([1, 2, 3, 4, 5]);
+
+        expect(
+          Optional.of('1,2,3,4,5')
+            .map((value) => value.split(','))
+            .map((value) => value.map(Number))
+            .get()
+        ).toEqual([1, 2, 3, 4, 5]);
       });
 
       it('Should not execute the mapper function if empty', () => {
@@ -186,6 +182,28 @@ describe('Optional class', () => {
           Optional.empty().map(mapper).get();
         }).toThrow();
         expect(mapper).not.toHaveBeenCalled();
+      });
+
+      it('Should allow for chaining with other methods', () => {
+        expect(
+          Optional.of('1,2,3,4,5')
+            .map((value) => value.split(','))
+            .map((value) => value.map(Number))
+            .map((value) => value.map((v) => v * 3))
+            .map((value) => value.filter((v) => v % 2 !== 0))
+            .filter((value) => value.some((v) => v % 2 === 0))
+            .isEmpty()
+        ).toEqual(true);
+
+        expect(
+          Optional.of('1,2,3,4,5')
+            .map((value) => value.split(','))
+            .map((value) => value.map(Number))
+            .map((value) => value.map((v) => v * 3))
+            .map((value) => value.filter((v) => v % 2 !== 0))
+            .map((value) => value.map(String))
+            .get()
+        ).toEqual(['3', '9', '15']);
       });
     });
     describe('flatMap', () => {
