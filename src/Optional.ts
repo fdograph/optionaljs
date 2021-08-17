@@ -3,7 +3,11 @@ export type ConsumerFunction<ValueType, ReturnType = void> = (
 ) => ReturnType;
 
 export type NilType = null | undefined;
-export type ValueOrNullType<T, U = T> = T extends NilType ? null : U;
+export type ValueOrNullType<
+  ValueType,
+  FallbackType = ValueType,
+  EmptyType = null
+> = ValueType extends NilType ? EmptyType : FallbackType;
 
 export class NoSuchElementException extends Error {
   constructor(m?: string) {
@@ -25,7 +29,7 @@ export class Optional<T> {
   }
 
   public static ofNullable<ValueType>(
-    value?: ValueType
+    value: ValueType | NilType
   ): Optional<ValueOrNullType<ValueType>> {
     if (isNil(value)) {
       return Optional.empty() as Optional<ValueOrNullType<ValueType>>;
@@ -68,22 +72,22 @@ export class Optional<T> {
     return this.value;
   }
 
-  public orElse<U>(other: T extends NilType ? U : T): T | U {
+  public orElse<U>(other: ValueOrNullType<T, T, U>): ValueOrNullType<T, T, U> {
     if (isNil(this.value)) {
       return Optional.of(other).get();
     }
 
-    return this.get();
+    return this.get() as ValueOrNullType<T, T, U>;
   }
 
   public orElseGet<U>(
-    getter: ConsumerFunction<NilType, T extends NilType ? U : T>
-  ): T | U {
+    getter: ConsumerFunction<NilType, ValueOrNullType<T, T, U>>
+  ): ValueOrNullType<T, T, U> {
     if (isNil(this.value)) {
       return getter(this.value);
     }
 
-    return this.value;
+    return this.get() as ValueOrNullType<T, T, U>;
   }
 
   public orElseThrow<ExceptionType extends Error>(ex: ExceptionType): T {

@@ -37,12 +37,6 @@ describe('Optional class', () => {
         const opt = Optional.ofNullable(12345678);
 
         expect(opt.isEmpty()).toBe(false);
-        expect(opt.isPresent()).toBe(true);
-        expect(opt.orElse(123)).toBe(12345678);
-        expect(opt.orElseGet(() => 12345)).toBe(12345678);
-        expect(() => {
-          opt.orElseThrow(new Error('Trying to get empty'));
-        }).not.toThrow();
         expect(opt.get()).toEqual(12345678);
       });
       it('Should create an Empty optional when supplied with empty value', () => {
@@ -202,8 +196,9 @@ describe('Optional class', () => {
             .map((value) => value.map((v) => v * 3))
             .map((value) => value.filter((v) => v % 2 !== 0))
             .map((value) => value.map(String))
+            .map((value) => value.join(','))
             .get()
-        ).toEqual(['3', '9', '15']);
+        ).toEqual('3,9,15');
       });
     });
     describe('flatMap', () => {
@@ -223,6 +218,21 @@ describe('Optional class', () => {
         }).toThrow();
         expect(mapper).not.toHaveBeenCalled();
       });
+    });
+  });
+  describe('Use cases and edges', () => {
+    it('should handle a nullable object', () => {
+      const innerLogic = 100;
+      const outerValue = innerLogic < 50 ? 'Not a null value' : undefined;
+      const o = Optional.ofNullable(outerValue);
+      expect(o.isEmpty()).toEqual(true);
+    });
+    it('should nullify all mutations when empty', () => {
+      expect(
+        Optional.empty()
+          .map(() => 123)
+          .isEmpty()
+      ).toEqual(true);
     });
   });
 });
