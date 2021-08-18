@@ -195,10 +195,10 @@ describe('Optional class', () => {
             .map((value) => value.map(Number))
             .map((value) => value.map((v) => v * 3))
             .map((value) => value.filter((v) => v % 2 !== 0))
-            .map((value) => value.map(String))
+            .map((value) => [...value, 'what?'])
             .map((value) => value.join(','))
             .get()
-        ).toEqual('3,9,15');
+        ).toEqual('3,9,15,what?');
       });
     });
     describe('flatMap', () => {
