@@ -51,7 +51,7 @@ describe('Optional class', () => {
         expect(Optional.ofNullable(false).isPresent()).toBe(true);
         expect(Optional.ofNullable(true).isPresent()).toBe(true);
         expect(Optional.ofNullable([]).isPresent()).toBe(true);
-        expect(Optional.ofNullable({}).isPresent()).toBe(true);
+        expect(Optional.ofNullable({ a: 'hello' }).isPresent()).toBe(true);
         expect(Optional.ofNullable('aaaaaa').isPresent()).toBe(true);
 
         expect(Optional.ofNullable(undefined).isPresent()).toBe(false);
@@ -112,9 +112,7 @@ describe('Optional class', () => {
       });
       it('should return the result of the callable function if empty', () => {
         const consumer = jest.fn(() => 987654);
-        expect(Optional.ofNullable(undefined).orElseGet(consumer)).toEqual(
-          987654
-        );
+        expect(Optional.ofNullable(undefined).orElseGet(consumer)).toEqual(987654);
         expect(consumer).toHaveBeenCalled();
       });
     });
@@ -126,9 +124,7 @@ describe('Optional class', () => {
           Optional.ofNullable(12345).orElseThrow(new MockException());
         }).not.toThrow();
 
-        expect(
-          Optional.ofNullable(12345).orElseThrow(new MockException())
-        ).toEqual(12345);
+        expect(Optional.ofNullable(12345).orElseThrow(new MockException())).toEqual(12345);
       });
       it('should throw the given exception if empty', () => {
         expect(() => {
